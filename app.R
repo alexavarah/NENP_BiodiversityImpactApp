@@ -78,55 +78,14 @@ butterflies_over_wheat <- base64enc::dataURI(
 )
 
 photo_stack <- base64enc::dataURI(
-  file = "www/kids_stack.jpg",
+  file = "www/kids_stack.JPG",
   mime = "image/jpeg"
 )
 
 photo_pond <- base64enc::dataURI(
-  file = "www/kids_pond.jpg",
+  file = "www/kids_pond.JPG",
   mime = "image/jpeg"
 )
-
-# shovel_bark <- base64enc::dataURI(
-#   file = "www/shovel-bark.png",
-#   mime = "image/png"
-# )
-
-# berries_stone <- base64enc::dataURI(
-#   file = "www/berries-stone.png",
-#   mime = "image/png"
-# )
-
-# fox_butterfly <- base64enc::dataURI(
-#   file = "www/fox-butterfly.png",
-#   mime = "image/png"
-#)
-
-# frog_grass <- base64enc::dataURI(
-#   file = "www/frog-grass.png",
-#   mime = "image/png"
-#   )
-# 
-# butterfly_poppy <- base64enc::dataURI(
-#   file = "www/butterfly-poppy.png",
-#   mime = "image/png"
-#   )
-# 
-# butterfly_daffodil <- base64enc::dataURI(
-#   file = "www/butterfly-daffodil.png",
-#   mime = "image/png"
-#   )
-# 
-# bird_daffodil <- base64enc::dataURI(
-#   file = "www/bird-daffodil.png",
-#   mime = "image/png"
-#   )
-# 
-# bird2_ivy <- base64enc::dataURI(
-#   file = "www/bird-2-ivy.png",
-#   mime = "image/png"
-#   )
-
 
 # *************************************************
 # Set NENP Theme ----
@@ -387,6 +346,8 @@ ui <- navbarPage(
 
             )
           ),
+          
+          uiOutput("group_help"),
           
           # Biodiversity metric selector ----
           selectInput(
@@ -891,6 +852,66 @@ server <- function(input, output, session) {
         
         clusterOptions = markerClusterOptions()
       )
+    
+  })
+  
+  # Biodiversity group definitions ----
+  output$group_help <- renderUI({
+    
+    help_text <- switch(
+      
+      input$group,
+      
+      "pollinators" =
+        "Beneficial insects that pollinate flowers, such as bumblebees.",
+      
+      "natural enemies" =
+        "These are beneficial insects and other animals that control plant pests. 
+        They are predators or parasites of these pests. For example, ladybirds 
+        are natural enemies because they eat aphids.",
+      
+      "pests" =
+        "Animals that can damage plants, crops or gardens, such as aphids.",
+      
+      "decomposers" =
+        "Fungi, bacteria that break down dead material such as leaves and wood into soil nutrients.",
+      
+      "plants" =
+        "Plants such as grasses, wildflowers, shrubs and trees.",
+      
+      "birds" =
+        "Feathered animals such as robins, blackbirds and sparrows.",
+      
+      "invertebrates" =
+        "Animals without a backbone. They include insects, spiders, snails, woodlice and worms.",
+      
+      "insects" =
+        "Invertebrates with six legs, such as bees, butterflies, beetles and flies.",
+      
+      "mammals" =
+        "Warm-blooded animals with fur or hair that feed milk to their young, such as hedgehogs and bats.",
+      
+      "amphibians and reptiles" =
+        "Animals such as frogs, toads, newts, snakes and lizards.",
+      
+      "fungi and bacteria" =
+        "Micro-organisms that help recycle nutrients and keep ecosystems working.",
+      
+      "all taxa" =
+        "Includes all biodiversity groups combined."
+      
+    )
+    
+    tags$p(
+      help_text,
+      style = "
+      font-size: 0.9em;
+      color: #335945;
+      font-style: italic;
+      margin-top: 5px;
+      margin-bottom: 15px;
+    "
+    )
     
   })
   
