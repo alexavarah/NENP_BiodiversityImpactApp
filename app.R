@@ -1336,4 +1336,4 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 #runApp(launch.browser = TRUE)
 
-rsconnect::deployApp()
+#rsconnect::deployApp() #NB only run this code in the console! Never have it in the app.
