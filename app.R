@@ -167,6 +167,17 @@ ui <- navbarPage(
       )
     ),
     
+    # # Lighter colour for actions not available yet
+    # tags$style(HTML("
+    #     select#action option[value='dead_wood'],
+    #     select#action option[value='green_roofs_walls'],
+    #     select#action option[value='ponds'] {
+    #       color: #AABCBC;
+    #     }
+    #     "
+    #                 )
+    #            ),
+    
     # Error message
     shinydisconnect::disconnectMessage(
       text = "An error has occurred. Please reload the page and try again.",
@@ -220,10 +231,6 @@ ui <- navbarPage(
         used in the analyses."
       ),
       
-      # leafletOutput(
-      #   "dataset_map",
-      #   height = "600px"
-      # )
       fluidRow(
         
         column(
@@ -237,10 +244,11 @@ ui <- navbarPage(
           
         )
         
-      )
+      ) # end fluidRow
       
-    )
-  ),
+    ) # end fluidPage
+    
+  ), # end tabPanel
   
   # *****************************************************
   # EXPLORE TAB ----
@@ -290,7 +298,32 @@ ui <- navbarPage(
           width = 5,
           
           # Nature action selector ----
-          selectInput(
+          # selectInput(
+          #   inputId = "action",
+          #   label = tagList(
+          #     "Nature action",
+          #     tags$img(
+          #       src = fork_daffodil,
+          #       height = "20px",
+          #       style = "margin-right: 6px;"
+          #     ),
+          #     tags$img(
+          #       src = shovel_daffodil,
+          #       height = "20px",
+          #       style = "margin-right: 6px;"
+          #     )
+          #   ),
+          #   choices = c(
+          #     "plant flowers" = "flower_interventions",
+          #     "create more species-rich grassland" = "grass_interventions",
+          #     "create some dead wood habitat (e.g., log pile)" = "dead_wood",
+          #     "install a green roof or wall" = "green_roofs_walls",
+          #     "install a wildlife pond" = "ponds"
+          #   )
+          # ),
+          
+          # Nature action selector ----
+          selectizeInput(
             inputId = "action",
             label = tagList(
               "Nature action",
@@ -311,9 +344,25 @@ ui <- navbarPage(
               "create some dead wood habitat (e.g., log pile)" = "dead_wood",
               "install a green roof or wall" = "green_roofs_walls",
               "install a wildlife pond" = "ponds"
+            ),
+            options = list(
+              render = I("
+      {
+        option: function(item, escape) {
+          var colour = ['dead_wood', 'green_roofs_walls', 'ponds'].includes(item.value)
+            ? '#AABCBC'
+            : 'inherit';
+
+          return '<div style=\"color:' + colour + '\">' +
+            escape(item.label) +
+            '</div>';
+        }
+      }
+    ")
             )
           ),
           
+          # Biodiversity group selector ----
           selectInput(
             inputId = "group",
             label = tagList(
@@ -334,12 +383,16 @@ ui <- navbarPage(
               ),
 
               "Taxonomic groups" = c(
-                "plants",
-                "birds",
+                "bees",
+                "wasps",
+                "hoverflies",
+                "butterflies and moths",
+                "beetles",
+                "spiders",
+                "worms",
                 "invertebrates",
                 "insects",
                 "mammals",
-                "amphibians and reptiles",
                 "fungi and bacteria",
                 "all taxa"
               )
@@ -361,10 +414,10 @@ ui <- navbarPage(
               )
             ),
             choices = c(
-              "abundance"   = "abundance",
-              "richness"    = "richness",
-              "diversity"   = "diversity",
-              "all metrics" = "all"
+              # user sees text on left; right gets passed to the server
+              "abundance"   = "abundance", # Server keeps rows where bdmetric == "abundance"
+              "richness and diversity"  = "diversity", # Server keeps rows where bdmetric == "diversity"
+              "all metrics" = "all" # 'all' tells Shiny NOT to apply a filter
             ),
             selected = "all"
           ),
@@ -408,15 +461,17 @@ ui <- navbarPage(
           plotOutput(
             outputId = "effect_plot",
             height = "400px"
-          )
+          ),
+          
+          uiOutput("plot_explanation")
           
         )
         
-      )
+      ) # end fluidRow()
       
-    )
+    ) # end fluidPage()
     
-  ),
+  ), # end tabPanel()
   
   # *****************************************************
   # SCIENTIFIC INFO TAB ----
@@ -428,7 +483,6 @@ ui <- navbarPage(
     
     fluidPage(
       
-      br(),
       br(),
       
       h2("The science behind it all"),
@@ -468,7 +522,13 @@ ui <- navbarPage(
       ),
       
       p(
-        "We first searched for relevant scientific studies and extracted their results.
+        "We first searched for relevant scientific studies in a ",
+        glossary_term(
+          "systematic",
+          "An organised and repeatable way of doing things."
+        ),
+        " way. 
+        Once we'd found suitable studies, we then extracted their results.
         Each study might have measured several different things, and so we 
         can normally get more than one piece of evidence from a study. 
         For example, if a study counted butterflies and bees in wildflower 
@@ -487,13 +547,13 @@ ui <- navbarPage(
       
       tags$div(
         style = "
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: nowrap;
-    margin: 20px 0;
-  ",
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: nowrap;
+          margin: 20px 0;
+        ",
         
         tags$img(
           src = butterflies_over_flower,
@@ -540,7 +600,8 @@ ui <- navbarPage(
         "Each of these comparisons is called an ",
         glossary_term(
           "effect size",
-          "A measure of how large the difference is between an intervention and a control. (Go to the glossary for a fuller explanation)."
+          "A measure of how large the difference is between an intervention and 
+          a control. (Go to the glossary for a fuller explanation)."
         ),
         ". Effect sizes tell us how big the difference is."
       ),
@@ -574,8 +635,8 @@ ui <- navbarPage(
       p(
         "Once we've found relevant studies and extracted all the effect sizes 
         from them, we build statistical models that can analyse all the data
-        together and come up with one overall average effect. This is the 
-        'meta-analysis' part. (The 'meta' bit just means we're doing an 
+        together and come up with one overall average effect. These models are 
+        the 'meta-analysis' part. (The 'meta' bit just means we're doing an 
         'analysis of analyses', rather than collecting new observations 
         ourselves)."
       ),
@@ -595,22 +656,17 @@ ui <- navbarPage(
       
       p(
         tags$strong(
-          "So, to use more scientific language, meta-analysis is a "
-        ),
-        glossary_term(
-          "systematic",
-          "An organised and repeatable way of doing things."
-        ),
-        tags$strong(
-          " way of drawing out the results from many scientific papers and summarising them to create a "
+          "So, to use more scientific language, systematic review and 
+          meta-analysis together give a repeateable way of finding relevant 
+          studies and then analysing their results together to create a "
         ),
         glossary_term(
           "consensus",
           "Agreement."
         ),
         tags$strong(
-          "."
-        )
+          " by estimating an overall average effect."
+        ),
       ),
       
       p(
@@ -630,13 +686,12 @@ ui <- navbarPage(
         "How to interpret the results",
         style = "font-size: 1.4rem; font-weight: 500;"
       ),
-      #h3("How to interpret the results"),
       
       p(
         "Results are shown as an average effect estimated across studies. 
-        The confidence intervals indicate the uncertainty around this estimate.
-        They show the plausible range of values in which the true effect could lie."
-      ),
+        The confidence intervals indicate the uncertainty around this estimate:
+        they show the plausible range of values in which the true effect could lie."
+        ),
       
       p(
         "In reality, we can never know the 'true' effect, and in fact there won't 
@@ -646,10 +701,8 @@ ui <- navbarPage(
         be other things that affect how well a conservation action works. For 
         example, the types of flowers planted or the region of the world or 
         whether there is a nature reserve nearby."
-      )
+      ),
       
-    ),
-    
     br(),
     br(),
     
@@ -700,16 +753,19 @@ ui <- navbarPage(
         tags$figcaption(
           "School children creating a wildlife pond.",
           style = "
-        text-align: center;
-        margin-top: 8px;
-        font-style: italic;
-      "
+          text-align: center;
+          margin-top: 8px;
+          font-style: italic;
+          "
+          )
+        
         )
-      )
       
-    )
+      ) # end tags$div()
     
-  ),
+    ) # end fluidPage()
+    
+  ), # end tabPanel()
   
   # *****************************************************
   # GLOSSARY TAB ----
@@ -780,10 +836,9 @@ ui <- navbarPage(
       )
       
     )
-  )
-  
-# end of UI
-)
+  ) # End glossary tab panel
+
+) # end of UI
 
 # *****************************************************
 # Server ----
@@ -866,7 +921,7 @@ server <- function(input, output, session) {
         "Beneficial insects that pollinate flowers, such as bumblebees.",
       
       "natural enemies" =
-        "These are beneficial insects and other animals that control plant pests. 
+        "These are beneficial insects and other animals that control pests. 
         They are predators or parasites of these pests. For example, ladybirds 
         are natural enemies because they eat aphids.",
       
@@ -874,13 +929,36 @@ server <- function(input, output, session) {
         "Animals that can damage plants, crops or gardens, such as aphids.",
       
       "decomposers" =
-        "Fungi, bacteria that break down dead material such as leaves and wood into soil nutrients.",
+        "Fungi, bacteria and earthworms that break down dead material such as leaves and wood 
+        into soil nutrients.",
       
-      "plants" =
-        "Plants such as grasses, wildflowers, shrubs and trees.",
+      "bees" =
+        "Bees have two pairs of wings and long antennae. They include bumblebees, 
+        solitary bees and honeybees. They are very good pollinators.",
       
-      "birds" =
-        "Feathered animals such as robins, blackbirds and sparrows.",
+      "wasps" =
+        "Wasps are insects with two pairs of wings and some have a thin 'waist'. 
+        Some wasps are useful natural enemies and some are pollinators.",
+      
+      "hoverflies" =
+        "Hoverflies have one pair of wings and short antennae. They are very 
+        good pollinators.",
+      
+      "butterflies and moths" =
+        "Butterflies and moths are insects with wings covered in tiny scales. 
+        Moths have feathery antennae! They do some pollination.",
+      
+      "beetles" =
+        "Beetles are insects with tough wing cases protecting their delicate wings. 
+        They are often decomposers or pest controllers.",
+      
+      "spiders" =
+        "Spiders are arachnids and have eight legs. Almost all spiders are carnivorous.",
+      
+      "worms" =
+        "Worms include earthworms, nematodes and other types. Many live in soil. 
+        Earthworms are important decomposers. Some nematodes are natural enemies 
+        although others are pests.",
       
       "invertebrates" =
         "Animals without a backbone. They include insects, spiders, snails, woodlice and worms.",
@@ -889,16 +967,16 @@ server <- function(input, output, session) {
         "Invertebrates with six legs, such as bees, butterflies, beetles and flies.",
       
       "mammals" =
-        "Warm-blooded animals with fur or hair that feed milk to their young, such as hedgehogs and bats.",
-      
-      "amphibians and reptiles" =
-        "Animals such as frogs, toads, newts, snakes and lizards.",
+        "Warm-blooded animals with fur or hair that feed milk to their young, 
+        such as hedgehogs, shrews and bats.",
       
       "fungi and bacteria" =
-        "Micro-organisms that help recycle nutrients and keep ecosystems working.",
+        "Fungi include mushrooms, moulds and yeasts and many are important 
+        decomposers. Bacteria are microscopic single-celled organisms and have 
+        lots of important roles including decomposition and photosynthesis.",
       
-      "all taxa" =
-        "Includes all biodiversity groups combined."
+      "all groups" =
+        "Includes all biodiversity groups."
       
     )
     
@@ -938,7 +1016,7 @@ server <- function(input, output, session) {
         
         dat_subset <- dat_subset |>
           dplyr::filter(
-            bd_metric_type == input$metric
+            bdmetric == input$metric
           )
         
       }
@@ -955,40 +1033,54 @@ server <- function(input, output, session) {
           dplyr::filter(
             grepl(input$group, functional_group)
           )
-        
-      } else if (input$group == "mammals") {
+      
+      } else if (input$group == "bees") {
         
         dat_subset <- dat_subset |>
           dplyr::filter(
-            tax_com == "mammals"
+            taxon_common == "bees"
           )
         
-      } else if (input$group == "plants") {
+      } else if (input$group == "wasps") {
         
         dat_subset <- dat_subset |>
           dplyr::filter(
-            tax_com == "plants"
+            taxon_common == "wasps"
+          )
+      
+      } else if (input$group == "hoverflies") {
+        
+        dat_subset <- dat_subset |>
+          dplyr::filter(
+            taxon_common == "flies - hoverflies"
           )
         
-      } else if (input$group == "birds") {
+      } else if (input$group == "butterflies and moths") {
         
         dat_subset <- dat_subset |>
           dplyr::filter(
-            tax_com == "birds"
+            taxon_common %in% c("butterflies", "moths")
+          )
+      
+      } else if (input$group == "beetles") {
+        
+        dat_subset <- dat_subset |>
+          dplyr::filter(
+            tax_com == "beetles"
           )
         
-      } else if (input$group == "fungi and bacteria") {
+      } else if (input$group == "spiders") {
         
         dat_subset <- dat_subset |>
           dplyr::filter(
-            tax_com %in% c("fungi", "bacteria")
+            taxon_common == "spiders"
           )
-        
-      } else if (input$group == "amphibians and reptiles") {
+      
+      } else if (input$group == "worms") {
         
         dat_subset <- dat_subset |>
           dplyr::filter(
-            tax_com %in% c("amphibians", "reptiles")
+            taxon_common %in% c("worms", "nematodes")
           )
         
       } else if (input$group == "invertebrates") {
@@ -1022,19 +1114,34 @@ server <- function(input, output, session) {
         dat_subset <- dat_subset |>
           dplyr::filter(
             tax_com %in% c(
+              "ants",
+              "aphids",
               "bees",
+              "beetles",
+              "bugs",
+              "butterflies",
               "flies - hoverflies",
               "flies - other flies",
-              "wasps",
-              "bugs",
               "insects",
-              "aphids",
+              "moths",
               "orthoptera",
-              "ants",
-              "butterflies",
-              "moths"
+              "wasps"
             )
           )
+      
+      } else if (input$group == "mammals") {
+        
+        dat_subset <- dat_subset |>
+          dplyr::filter(
+            tax_com == "mammals"
+          )
+      
+      } else if (input$group == "fungi and bacteria") {
+        
+        dat_subset <- dat_subset |>
+          dplyr::filter(
+            taxon_common %in% c("fungi", "bacteria")
+          )  
         
       }
       
@@ -1059,7 +1166,7 @@ server <- function(input, output, session) {
       n_comparisons <- nrow(dat_subset)
       
       if (n_comparisons == 0) {
-        stop("No data available for this combination of action, biodiversity 
+        stop("no data are available for this combination of action, biodiversity 
              group, metric and environment.")
       }
       
@@ -1070,10 +1177,10 @@ server <- function(input, output, session) {
       if (n_studies < 5) {
         
         msg <- if (n_studies == 1) {
-          "There is only 1 study available for this combination of nature action, biodiversity group, metric and environment."
+          "there is only 1 study available for this combination of nature action, biodiversity group, metric and environment."
         } else {
           paste0(
-            "There are only ",
+            "there are only ",
             n_studies,
             " studies available for this combination of nature action, biodiversity group, metric and environment."
           )
@@ -1086,6 +1193,17 @@ server <- function(input, output, session) {
           )
         )
         
+      }
+      
+      # Most common control type ----
+      control_counts <- dat_subset |> 
+        dplyr::filter(!is.na(control_type_level_2)) |>
+        dplyr::count(control_type_level_2, sort = TRUE)
+      
+      most_common_control <- if (nrow(control_counts) > 0) {
+        as.character(control_counts$control_type_level_2[1])
+      } else {
+        "not specified"
       }
       
       # ************************************************
@@ -1156,6 +1274,35 @@ server <- function(input, output, session) {
           col = "grey50"
         )
         
+      }) # end renderPlot()
+      
+      # Explanation underneath results graph ----
+      output$plot_explanation <- renderUI({
+        
+        HTML(
+          paste0(
+            "The green circle gives the overall mean effect of the conservation 
+            action (we call the conservation action the 'treatment', and the 
+            habitat it was compared with is called the 'control'). The green 
+            lines show the confidence interval: this tells you the range in 
+            which the true average effect could plausibly be.",
+            
+            "<br><br>",
+            
+            "The dotted line at zero shows where there would be no effect of a 
+            conservation action. If the green point is to the <em>left</em> of 
+            the dotted line it means biodiversity is lower in the treatment than 
+            in the control. If the green point is to the <em>right</em> of the 
+            dotted line it means biodiversity is higher in the treatment than in 
+            the control.",
+            
+            "<br><br>",
+            
+            "If the confidence intervals cross the dotted zero line, it means 
+            that the result could plausibly be negative OR positive."
+          )
+        )
+        
       })
       
       # ************************************************
@@ -1175,24 +1322,22 @@ server <- function(input, output, session) {
       # Metric label ----
       metric_label <- dplyr::case_when(
         input$metric == "abundance" ~ "abundance",
-        input$metric == "richness" ~ "species richness",
+        #input$metric == "richness" ~ "species richness",
         input$metric == "diversity" ~ "diversity",
         input$metric == "all" ~ "biodiversity",
         TRUE ~ input$metric
       )
       
       # Group label ----
-      group_label <- dplyr::case_when(
-        input$group == "pollinators" ~ "pollinator",
-        input$group == "natural enemies" ~ "natural enemy",
-        input$group == "pests" ~ "pest",
-        input$group == "decomposers" ~ "decomposer",
-        input$group == "plants" ~ "plant",
-        input$group == "birds" ~ "bird",
-        input$group == "mammals" ~ "mammal",
-        input$group == "invertebrates" ~ "invertebrate",
-        TRUE ~ input$group
-      )
+      # group_label <- dplyr::case_when(
+      #   input$group == "pollinators" ~ "pollinators",
+      #   input$group == "natural enemies" ~ "natural enemies",
+      #   input$group == "pests" ~ "pests",
+      #   input$group == "decomposers" ~ "decomposers",
+      #   input$group == "mammals" ~ "mammal",
+      #   input$group == "invertebrates" ~ "invertebrate",
+      #   TRUE ~ input$group
+      # )
       
       # Environment label ----
       environment_label <- dplyr::case_when(
@@ -1206,8 +1351,10 @@ server <- function(input, output, session) {
       effect_text <- if (beta_rr > 1.001) {
         
         paste0(
-          group_label, " ",
+          " the ",
           metric_label,
+          " of ",
+          input$group,
           " would be ",
           round(beta_rr, 2),
           " times the control. This is an estimated ",
@@ -1218,8 +1365,10 @@ server <- function(input, output, session) {
       } else if (beta_rr < 0.999) {
         
         paste0(
-          group_label, " ",
+          " the ",
           metric_label,
+          " of ",
+          input$group,
           " would be ",
           round(beta_rr, 1),
           " times the control. This is an estimated ",
@@ -1230,8 +1379,10 @@ server <- function(input, output, session) {
       } else {
         
         paste0(
-          group_label, " ",
+          " the ",
           metric_label,
+          " of ",
+          input$group,
           " would be the same as the control. This indicates no change."
         )
         
@@ -1245,7 +1396,8 @@ server <- function(input, output, session) {
       highlight_grass <- "#849931"
       
       # Output text ----
-      output$result_text <- renderUI({
+      output$result_text <- renderUI(
+        {
         
         HTML(
           paste0(
@@ -1300,12 +1452,14 @@ server <- function(input, output, session) {
             n_studies,
             "</span>",
             
-            " studies."
-            
+            " studies. The controls in this comparison were mostly ",
+            most_common_control,
+            ".",
+            "<br><br>"
+            )
           )
-        )
-        
-      })
+        }
+      ) # end of renderUI
       
     }, error = function(e) {
       
@@ -1313,8 +1467,8 @@ server <- function(input, output, session) {
         
         HTML(
           paste0(
-            "<strong>The analysis could not be completed.</strong><br><br>",
-            "Error: ",
+            "<strong>The analysis could not be completed.</strong>",
+            " This is because ",
             e$message
           )
         )
@@ -1323,6 +1477,10 @@ server <- function(input, output, session) {
       
       output$effect_plot <- renderPlot({
         plot.new()
+      })
+      
+      output$plot_explanation <- renderUI({
+        NULL
       })
       
     })
