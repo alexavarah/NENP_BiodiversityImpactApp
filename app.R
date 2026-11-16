@@ -1011,32 +1011,36 @@ server <- function(input, output, session) {
     
     tryCatch({
       
+      # Store the selections that were active when Run was clicked
+      action_selected <- input$action
+      metric_selected <- input$metric
+      group_selected <- input$group
+      environment_selected <- input$environment
+      
       ## ************************************************
       ## Filtering ----
       ## ************************************************
       
-      #print(input$metric)
-      
       ## Filter by nature action ----
       dat_subset <- dat |>
         dplyr::filter(
-          target_intervention == input$action
+          target_intervention == action_selected
         )
       
       print(names(dat_subset))
       
       ## Filter by biodiversity metric ----
-      if (input$metric != "all") {
+      if (metric_selected != "all") {  
         
         dat_subset <- dat_subset |>
           dplyr::filter(
-            bdmetric == input$metric
+            bdmetric == metric_selected
           )
         
       }
       
       ## Filter by functional or taxonomic group ----
-      if (input$group %in% c(
+      if (group_selected %in% c(
         "pollinators",
         "natural enemies",
         "pests",
@@ -1045,59 +1049,59 @@ server <- function(input, output, session) {
         
         dat_subset <- dat_subset |>
           dplyr::filter(
-            grepl(input$group, functional_group)
+            grepl(group_selected, functional_group)
           )
       
-      } else if (input$group == "bees") {
+      } else if (group_selected == "bees") {
         
         dat_subset <- dat_subset |>
           dplyr::filter(
             taxon_common == "bees"
           )
         
-      } else if (input$group == "wasps") {
+      } else if (group_selected == "wasps") {
         
         dat_subset <- dat_subset |>
           dplyr::filter(
             taxon_common == "wasps"
           )
       
-      } else if (input$group == "hoverflies") {
+      } else if (group_selected == "hoverflies") {
         
         dat_subset <- dat_subset |>
           dplyr::filter(
             taxon_common == "flies - hoverflies"
           )
         
-      } else if (input$group == "butterflies and moths") {
+      } else if (group_selected == "butterflies and moths") { 
         
         dat_subset <- dat_subset |>
           dplyr::filter(
             taxon_common %in% c("butterflies", "moths")
           )
       
-      } else if (input$group == "beetles") {
+      } else if (group_selected == "beetles") {
         
         dat_subset <- dat_subset |>
           dplyr::filter(
             tax_com == "beetles"
           )
         
-      } else if (input$group == "spiders") {
+      } else if (group_selected == "spiders") {
         
         dat_subset <- dat_subset |>
           dplyr::filter(
             taxon_common == "spiders"
           )
       
-      } else if (input$group == "worms") {
+      } else if (group_selected == "worms") {
         
         dat_subset <- dat_subset |>
           dplyr::filter(
             taxon_common %in% c("worms", "nematodes")
           )
         
-      } else if (input$group == "invertebrates") {
+      } else if (group_selected == "invertebrates") {
         
         dat_subset <- dat_subset |>
           dplyr::filter(
@@ -1123,7 +1127,7 @@ server <- function(input, output, session) {
             )
           )
         
-      } else if (input$group == "insects") {
+      } else if (group_selected == "insects") {
         
         dat_subset <- dat_subset |>
           dplyr::filter(
@@ -1143,14 +1147,13 @@ server <- function(input, output, session) {
             )
           )
       
-      } else if (input$group == "mammals") {
+      } else if (group_selected == "mammals") {
         
         dat_subset <- dat_subset |>
           dplyr::filter(
             tax_com == "mammals"
           )
-      
-      } else if (input$group == "fungi and bacteria") {
+      } else if (group_selected == "fungi and bacteria") {
         
         dat_subset <- dat_subset |>
           dplyr::filter(
@@ -1160,14 +1163,14 @@ server <- function(input, output, session) {
       }
       
       ## Filter by urban / rural ----
-      if (input$environment == "urban") {
-        
+      if (environment_selected == "urban") {
+  
         dat_subset <- dat_subset |>
           dplyr::filter(
             land_use_context_ur %in% c("urban", "suburban")
           )
         
-      } else if (input$environment == "rural") {
+      } else if (environment_selected == "rural") {
         
         dat_subset <- dat_subset |>
           dplyr::filter(
@@ -1177,6 +1180,7 @@ server <- function(input, output, session) {
       }
       
       ## Filter by n >= 5 ----
+      
       # Count number of observations
       n_comparisons <- nrow(dat_subset)
       
@@ -1240,22 +1244,20 @@ server <- function(input, output, session) {
 
       # Response ratio
       beta_rr <- predict(model, transf = exp)[[1]]
-      #ci_u_rr <- predict(model, transf = exp)[[3]]
-      #ci_l_rr <- predict(model, transf = exp)[[4]]
       
       # Percentage change
       pct_change <- 100 * (exp(model$b[1]) - 1)
       lower_pct  <- 100 * (exp(model$ci.lb[1]) - 1)
       upper_pct  <- 100 * (exp(model$ci.ub[1]) - 1)
       
-      # specify colour for plotting
+      # Specify colour for plotting
       col <- dplyr::case_when(
         pct_change > 0 ~ "#657627",  # increase
         pct_change < 0 ~ "#BD4C19",  # decrease
         TRUE           ~ "#AABCBC"   # no change
       )
       
-      # specify plot
+      # Specify plot
       output$effect_plot <- renderPlot({
 
         plot(
@@ -1327,71 +1329,28 @@ server <- function(input, output, session) {
       
       ## Action label ----
       action_label <- dplyr::case_when(
-        input$action == "flower_interventions" ~ "plant flowers",
-        input$action == "grass_interventions" ~ "create more species-rich grassland",
-        input$action == "dead_wood" ~ "create some dead wood habitat (e.g., log pile)",
-        input$action == "green_roofs_walls" ~ "install a green roof or wall",
-        input$action == "ponds" ~ "install a wildlife pond",
-        TRUE ~ input$action
+        action_selected == "flower_interventions" ~ "plant flowers",
+        action_selected == "grass_interventions" ~ "create more species-rich grassland",
+        action_selected == "dead_wood" ~ "create some dead wood habitat (e.g., log pile)",
+        action_selected == "green_roofs_walls" ~ "install a green roof or wall",
+        action_selected == "ponds" ~ "install a wildlife pond",
+        TRUE ~ action_selected
       )
       
       ## Metric label ----
-      metric_label <- dplyr::case_when(
-        input$metric == "abundance" ~ "abundance",
-        #input$metric == "richness" ~ "species richness",
-        input$metric == "diversity" ~ "diversity",
-        input$metric == "all" ~ "biodiversity",
-        TRUE ~ input$metric
+      metric_label <- dplyr::case_when(metric_selected == "abundance" ~ "abundance",
+        metric_selected == "diversity" ~ "diversity",
+        metric_selected == "all" ~ "biodiversity",
+        TRUE ~ metric_selected
       )
       
       ## Environment label ----
       environment_label <- dplyr::case_when(
-        input$environment == "urban" ~ " in an urban or suburban environment",
-        input$environment == "rural" ~ " in a rural environment",
-        input$environment == "all" ~ "",
+        environment_selected == "urban" ~ " in an urban or suburban environment",
+        environment_selected == "rural" ~ " in a rural environment",
+        environment_selected == "all" ~ "",
         TRUE ~ ""
       )
-      
-      ## Effect text ----
-      effect_text <- if (beta_rr > 1.001) {
-        
-        paste0(
-          " the ",
-          metric_label,
-          " of ",
-          input$group,
-          " would be ",
-          round(beta_rr, 2),
-          " times the control. This is an estimated ",
-          round(pct_change, 0),
-          "% increase."
-        )
-        
-      } else if (beta_rr < 0.999) {
-        
-        paste0(
-          " the ",
-          metric_label,
-          " of ",
-          input$group,
-          " would be ",
-          round(beta_rr, 1),
-          " times the control. This is an estimated ",
-          round(abs(pct_change), 0),
-          "% decrease."
-        )
-        
-      } else {
-        
-        paste0(
-          " the ",
-          metric_label,
-          " of ",
-          input$group,
-          " would be the same as the control. This indicates no change."
-        )
-        
-      }
       
       highlight_daffodil <- "#E7AE3F"
       highlight_cornflower <- "#337796"
@@ -1414,12 +1373,11 @@ server <- function(input, output, session) {
               action_label,
               "</span> ",
               
-              if (input$environment != "all") paste0(
-                "in a ",
+              if (environment_label != "all") paste0(
                 "<span style='font-weight:bold; color:",
                 highlight_bark,
                 ";'>",
-                gsub("^ in an? ", "", environment_label),
+                environment_label,
                 "</span>"
               ) else "",
               
@@ -1434,7 +1392,7 @@ server <- function(input, output, session) {
               "<span style='font-weight:bold; color:",
               highlight_cornflower,
               ";'>",
-              input$group,
+              group_selected,
               "</span> would be ",
               
               "<span style='font-weight:bold; color:",
@@ -1554,6 +1512,5 @@ server <- function(input, output, session) {
 
 # Run ----
 shinyApp(ui, server)
-#runApp(launch.browser = TRUE)
 
 #rsconnect::deployApp() #NB only run this code in the console! Never have it in the app.
