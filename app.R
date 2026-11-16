@@ -14,8 +14,6 @@ library(leaflet)
 
 source("R/prepare_data.R")
 
-print(nrow(dat))
-
 # Load images as shiny isn't finding them otherwise
 methods_flow_diagram <- base64enc::dataURI(
   file = "www/methods_flow_diagram.png",
@@ -67,6 +65,16 @@ microscope_ivy <- base64enc::dataURI(
   mime = "image/png"
   )
 
+hedges_bark <- base64enc::dataURI(
+  file = "www/hedges-bark.png",
+  mime = "image/png"
+)
+
+house_bark <- base64enc::dataURI(
+  file = "www/house-bark.png",
+  mime = "image/png"
+)
+
 butterflies_over_flower <- base64enc::dataURI(
   file = "www/butterflies_over_flower.png",
   mime = "image/png"
@@ -117,9 +125,13 @@ glossary_term <- function(term, definition) {
   )
 }
 
-# *************************************************
-# UI ----
-# *************************************************
+# *****************************************************
+# *****************************************************
+#
+# *UI* ----
+#
+# *****************************************************
+# *****************************************************
 
 ui <- navbarPage(
   
@@ -260,7 +272,7 @@ ui <- navbarPage(
     
     fluidPage(
       
-      # Styling for dropdown group headings ----
+      ## Styling for dropdown group headings ----
       tags$style(HTML("
       select optgroup {
         font-weight: 900;
@@ -291,38 +303,13 @@ ui <- navbarPage(
       
       fluidRow(
         
-        # *Left column* -------------------------------------------------
+        # Left column -------------------------------------------------
         
         column(
           
           width = 5,
           
-          # Nature action selector ----
-          # selectInput(
-          #   inputId = "action",
-          #   label = tagList(
-          #     "Nature action",
-          #     tags$img(
-          #       src = fork_daffodil,
-          #       height = "20px",
-          #       style = "margin-right: 6px;"
-          #     ),
-          #     tags$img(
-          #       src = shovel_daffodil,
-          #       height = "20px",
-          #       style = "margin-right: 6px;"
-          #     )
-          #   ),
-          #   choices = c(
-          #     "plant flowers" = "flower_interventions",
-          #     "create more species-rich grassland" = "grass_interventions",
-          #     "create some dead wood habitat (e.g., log pile)" = "dead_wood",
-          #     "install a green roof or wall" = "green_roofs_walls",
-          #     "install a wildlife pond" = "ponds"
-          #   )
-          # ),
-          
-          # Nature action selector ----
+          ## Nature action selector ----
           selectizeInput(
             inputId = "action",
             label = tagList(
@@ -362,26 +349,34 @@ ui <- navbarPage(
             )
           ),
           
-          # Biodiversity group selector ----
+          ## Biodiversity group selector ----
           selectInput(
             inputId = "group",
-            label = tagList(
-              "Biodiversity group",
-              tags$img(
-                src = butterfly_cornflower,
-                height = "20px",
-                style = "margin-right: 6px;"
-              )
+            label = bslib::tooltip(
+              tagList(
+                "Biodiversity group",
+                tags$img(
+                  src = butterfly_cornflower,
+                  height = "20px",
+                  style = "margin-right: 6px;"
+                ),
+                tags$span("ⓘ", style = "color:#337796;")
+              ),
+              HTML(
+                "<strong>Functional groups:</strong> Living things are grouped by the jobs they do in the environment.<br><br>
+       <strong>Taxonomic groups:</strong> Living things are grouped by physical, genetic, and evolutionary relationships."
+              ),
+              placement = "right"
             ),
             choices = list(
-
+              
               "Functional groups" = c(
                 "pollinators",
                 "natural enemies",
                 "pests",
                 "decomposers"
               ),
-
+              
               "Taxonomic groups" = c(
                 "bees",
                 "wasps",
@@ -396,13 +391,13 @@ ui <- navbarPage(
                 "fungi and bacteria",
                 "all taxa"
               )
-
+              
             )
           ),
           
           uiOutput("group_help"),
           
-          # Biodiversity metric selector ----
+          ## Biodiversity metric selector ----
           selectInput(
             inputId = "metric",
             label = tagList(
@@ -422,10 +417,22 @@ ui <- navbarPage(
             selected = "all"
           ),
           
-          # Environment selector ----
+          ## Environment selector ----
           selectInput(
             inputId = "environment",
-            label = "Environment",
+            label = tagList(
+              "Environment",
+              tags$img(
+                src = house_bark,
+                height = "20px",
+                style = "margin-right: 6px;"
+              ),
+              tags$img(
+                src = hedges_bark,
+                height = "20px",
+                style = "margin-right: 6px;"
+              )
+            ),
             choices = c(
               "urban and suburban" = "urban",
               "rural"              = "rural",
@@ -434,7 +441,7 @@ ui <- navbarPage(
             selected = "all"
           ),
           
-          # Run button ----
+          ## Run button ----
           actionButton(
             inputId = "run_analysis",
             label = "Run",
@@ -450,7 +457,7 @@ ui <- navbarPage(
           
         ),
         
-        # *Right column* ------------------------------------------------
+        # Right column ------------------------------------------------
         
         column(
           
@@ -841,12 +848,13 @@ ui <- navbarPage(
 ) # end of UI
 
 # *****************************************************
-# Server ----
+# *****************************************************
+#
+# *SERVER* ----
+#
+# *****************************************************
 # *****************************************************
 
-# Server code superseded ----
-# server <- function(input, output, session) { 
-# Server code new ----
 server <- function(input, output, session) {
   
   # *****************************************************
@@ -910,7 +918,9 @@ server <- function(input, output, session) {
     
   })
   
+  # *****************************************************
   # Biodiversity group definitions ----
+  # *****************************************************
   output$group_help <- renderUI({
     
     help_text <- switch(
@@ -991,7 +1001,7 @@ server <- function(input, output, session) {
     "
     )
     
-  })
+  }) # end of renderUI
   
   # ************************************************
   # Analysis run button ----
@@ -1001,17 +1011,21 @@ server <- function(input, output, session) {
     
     tryCatch({
       
-      # ************************************************
-      ## FILTERING ----
-      # ************************************************
+      ## ************************************************
+      ## Filtering ----
+      ## ************************************************
       
-      # Filter by nature action ----
+      #print(input$metric)
+      
+      ## Filter by nature action ----
       dat_subset <- dat |>
         dplyr::filter(
           target_intervention == input$action
         )
       
-      # Filter by biodiversity metric ----
+      print(names(dat_subset))
+      
+      ## Filter by biodiversity metric ----
       if (input$metric != "all") {
         
         dat_subset <- dat_subset |>
@@ -1021,7 +1035,7 @@ server <- function(input, output, session) {
         
       }
       
-      # Filter by functional or taxonomic group ----
+      ## Filter by functional or taxonomic group ----
       if (input$group %in% c(
         "pollinators",
         "natural enemies",
@@ -1145,7 +1159,7 @@ server <- function(input, output, session) {
         
       }
       
-      # Filter by urban / rural ----
+      ## Filter by urban / rural ----
       if (input$environment == "urban") {
         
         dat_subset <- dat_subset |>
@@ -1162,7 +1176,8 @@ server <- function(input, output, session) {
         
       }
       
-      # Count number of observations ----
+      ## Filter by n >= 5 ----
+      # Count number of observations
       n_comparisons <- nrow(dat_subset)
       
       if (n_comparisons == 0) {
@@ -1170,7 +1185,7 @@ server <- function(input, output, session) {
              group, metric and environment.")
       }
       
-      # Count number of studies ----
+      # Count number of studies
       n_studies <- dplyr::n_distinct(dat_subset$study_ID)
       
       # Require a minimum number of studies
@@ -1195,7 +1210,7 @@ server <- function(input, output, session) {
         
       }
       
-      # Most common control type ----
+      # Most common control type
       control_counts <- dat_subset |> 
         dplyr::filter(!is.na(control_type_level_2)) |>
         dplyr::count(control_type_level_2, sort = TRUE)
@@ -1207,10 +1222,9 @@ server <- function(input, output, session) {
       }
       
       # ************************************************
-      ## MODEL ----
+      # Fit model ----
       # ************************************************
       
-      # Fit model
       model <- rma.mv(
         yi = lnrr,
         V = v_lnrr,
@@ -1218,7 +1232,11 @@ server <- function(input, output, session) {
         data = dat_subset
       )
       
-      # Extract results ----
+      # ************************************************
+      # Plot results ----
+      # ************************************************
+      
+      ## Extract results
 
       # Response ratio
       beta_rr <- predict(model, transf = exp)[[1]]
@@ -1230,8 +1248,6 @@ server <- function(input, output, session) {
       lower_pct  <- 100 * (exp(model$ci.lb[1]) - 1)
       upper_pct  <- 100 * (exp(model$ci.ub[1]) - 1)
       
-      # Results graph ----
-      
       # specify colour for plotting
       col <- dplyr::case_when(
         pct_change > 0 ~ "#657627",  # increase
@@ -1241,7 +1257,7 @@ server <- function(input, output, session) {
       
       # specify plot
       output$effect_plot <- renderPlot({
-        
+
         plot(
           pct_change,
           1,
@@ -1258,7 +1274,7 @@ server <- function(input, output, session) {
           xlab = "Estimated percentage change (%)",
           main = "Estimated biodiversity response"
         )
-        
+
         segments(
           lower_pct,
           1,
@@ -1267,13 +1283,13 @@ server <- function(input, output, session) {
           lwd = 4,
           col = "#657627"
         )
-        
+
         abline(
           v = 0,
           lty = 2,
           col = "grey50"
         )
-        
+
       }) # end renderPlot()
       
       # Explanation underneath results graph ----
@@ -1282,34 +1298,34 @@ server <- function(input, output, session) {
         HTML(
           paste0(
             "The green circle gives the overall mean effect of the conservation 
-            action (we call the conservation action the 'treatment', and the 
-            habitat it was compared with is called the 'control'). The green 
-            lines show the confidence interval: this tells you the range in 
+            action.",
+            
+            "<br><br>",
+            
+            "The green lines show the confidence interval: this tells you the range in 
             which the true average effect could plausibly be.",
             
             "<br><br>",
             
             "The dotted line at zero shows where there would be no effect of a 
             conservation action. If the green point is to the <em>left</em> of 
-            the dotted line it means biodiversity is lower in the treatment than 
-            in the control. If the green point is to the <em>right</em> of the 
-            dotted line it means biodiversity is higher in the treatment than in 
-            the control.",
+            the dotted line it means biodiversity is lower in the treatment (the 
+            conservation action) than in the control (the comparison habitat). 
+            If the green point is to the <em>right</em> of the dotted line it
+            means biodiversity is higher in the treatment than in the control.",
             
             "<br><br>",
-            
-            "If the confidence intervals cross the dotted zero line, it means 
-            that the result could plausibly be negative OR positive."
+            "<br><br>"
           )
         )
         
       })
       
       # ************************************************
-      ## CREATE RESULTS OUTPUT ----
+      # Results text ----
       # ************************************************
       
-      # Action label ----
+      ## Action label ----
       action_label <- dplyr::case_when(
         input$action == "flower_interventions" ~ "plant flowers",
         input$action == "grass_interventions" ~ "create more species-rich grassland",
@@ -1319,7 +1335,7 @@ server <- function(input, output, session) {
         TRUE ~ input$action
       )
       
-      # Metric label ----
+      ## Metric label ----
       metric_label <- dplyr::case_when(
         input$metric == "abundance" ~ "abundance",
         #input$metric == "richness" ~ "species richness",
@@ -1328,18 +1344,7 @@ server <- function(input, output, session) {
         TRUE ~ input$metric
       )
       
-      # Group label ----
-      # group_label <- dplyr::case_when(
-      #   input$group == "pollinators" ~ "pollinators",
-      #   input$group == "natural enemies" ~ "natural enemies",
-      #   input$group == "pests" ~ "pests",
-      #   input$group == "decomposers" ~ "decomposers",
-      #   input$group == "mammals" ~ "mammal",
-      #   input$group == "invertebrates" ~ "invertebrate",
-      #   TRUE ~ input$group
-      # )
-      
-      # Environment label ----
+      ## Environment label ----
       environment_label <- dplyr::case_when(
         input$environment == "urban" ~ " in an urban or suburban environment",
         input$environment == "rural" ~ " in a rural environment",
@@ -1347,7 +1352,7 @@ server <- function(input, output, session) {
         TRUE ~ ""
       )
       
-      # Effect text ----
+      ## Effect text ----
       effect_text <- if (beta_rr > 1.001) {
         
         paste0(
@@ -1394,85 +1399,142 @@ server <- function(input, output, session) {
       highlight_ivy <- "#335945"
       highlight_butterfly <- "#C87D2C"
       highlight_grass <- "#849931"
+      highlight_bark <- "#945528"
       
-      # Output text ----
+      ## Output text ----
       output$result_text <- renderUI(
         {
         
-        HTML(
-          paste0(
-            
-            "If you <span style='font-weight:bold; color:",
-            highlight_daffodil,
-            ";'>",
-            action_label,
-            "</span> ",
-            
-            "<span style='font-weight:bold; color:",
-            highlight_poppy,
-            ";'>",
-            environment_label,
-            "</span> ",
-            
-            "<span style='font-weight:bold; color:",
-            highlight_cornflower,
-            ";'>",
-            effect_text,
-            "</span>",
-            
-            "<br><br>",
-            
-            "However, because the evidence is not perfectly certain, the true 
-            average effect could plausibly be between ",
-            
-            "<span style='font-weight:bold; color:",
-            highlight_cornflower,
-            ";'>",
-            round(lower_pct, 0),
-            "% and ",
-            round(upper_pct, 0),
-            "%",
-            "</span>.",
-            
-            "<br><br>",
-            
-            "This analysis used ",
-            
-            "<span style='font-weight:bold; color:",
-            highlight_grass,
-            ";'>",
-            n_comparisons,
-            "</span>",
-            
-            " comparisons of intervention versus control from ",
-            
-            "<span style='font-weight:bold; color:",
-            highlight_grass,
-            ";'>",
-            n_studies,
-            "</span>",
-            
-            " studies. The controls in this comparison were mostly ",
-            most_common_control,
-            ".",
-            "<br><br>"
+          HTML(
+            paste0(
+              
+              "If you <span style='font-weight:bold; color:",
+              highlight_daffodil,
+              ";'>",
+              action_label,
+              "</span> ",
+              
+              if (input$environment != "all") paste0(
+                "in a ",
+                "<span style='font-weight:bold; color:",
+                highlight_bark,
+                ";'>",
+                gsub("^ in an? ", "", environment_label),
+                "</span>"
+              ) else "",
+              
+              ", the ",
+              
+              "<span style='font-weight:bold; color:",
+              highlight_ivy,
+              ";'>",
+              metric_label,
+              "</span> of ",
+              
+              "<span style='font-weight:bold; color:",
+              highlight_cornflower,
+              ";'>",
+              input$group,
+              "</span> would be ",
+              
+              "<span style='font-weight:bold; color:",
+              highlight_grass,
+              ";'>",
+              round(beta_rr, ifelse(beta_rr > 1.001, 2, 1)),
+              "</span>",
+              
+              if (beta_rr > 1.001) {
+                
+                paste0(
+                  " times the control. This is an estimated ",
+                  "<span style='font-weight:bold; color:",
+                  highlight_grass,
+                  ";'>",
+                  round(pct_change, 0),
+                  "%",
+                  "</span> increase."
+                )
+                
+              } else if (beta_rr < 0.999) {
+                
+                paste0(
+                  " times the control. This is an estimated ",
+                  "<span style='font-weight:bold; color:",
+                  highlight_grass,
+                  ";'>",
+                  round(abs(pct_change), 0),
+                  "%",
+                  "</span> decrease."
+                )
+                
+              } else {
+                
+                " the same as the control. This indicates no change."
+                
+              },
+              
+              "<br><br>",
+              
+              "However, because the evidence is not perfectly certain, the true average effect could plausibly be between ",
+              
+              "<span style='font-weight:bold; color:",
+              highlight_grass,
+              ";'>",
+              round(lower_pct, 0),
+              "% and ",
+              round(upper_pct, 0),
+              "%",
+              "</span>.",
+              
+              "<br><br>",
+              
+              "This analysis used ",
+              
+              "<span style='font-weight:bold; color:",
+              highlight_grass,
+              ";'>",
+              n_comparisons,
+              "</span>",
+              
+              " comparisons of intervention versus control from ",
+              
+              "<span style='font-weight:bold; color:",
+              highlight_grass,
+              ";'>",
+              n_studies,
+              "</span>",
+              
+              " studies. The controls in this comparison were mostly ",
+              
+              "<span style='font-weight:bold; color:",
+              highlight_bark,
+              ";'>",
+              most_common_control,
+              "</span>",
+              
+              " habitats.",
+              
+              "<br><br>"
             )
-          )
+          ) # end of HTML
+          
         }
       ) # end of renderUI
       
     }, error = function(e) {
-      
+
       output$result_text <- renderUI({
-        
+
         HTML(
           paste0(
             "<strong>The analysis could not be completed.</strong>",
             " This is because ",
-            e$message
+            e$message,
+            
+            "<br><br>"
           )
         )
-        
+
       })
       
       output$effect_plot <- renderPlot({
@@ -1485,9 +1547,9 @@ server <- function(input, output, session) {
       
     })
     
-  })
+  }) # end of observeEvent()
   
-}
+} # end of server
 
 
 # Run ----
