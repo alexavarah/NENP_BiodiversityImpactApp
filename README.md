@@ -53,7 +53,9 @@ NENP_BiodiversityImpactApp/
 └── .Rproj.user/                    # RStudio project settings
 ``` 
 
-## Running the app Open `app.R` in RStudio and run:  
+## Running the app
+
+Open `app.R` in RStudio and run:  
 
 ```r
 shiny::runApp()
