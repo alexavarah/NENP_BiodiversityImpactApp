@@ -14,7 +14,7 @@ The app enables users to explore the estimated effects of different nature
 actions on biodiversity across a range of taxonomic and functional groups and
 in urban or rural contexts. Results are derived from meta-analytic models using 
 data from a large evidence base of ecological studies. Results are presented 
-through an interactive user interface.The intended aim is to aid decision-making
+through an interactive user interface. The intended aim is to aid decision-making
 by school children and teachers when planning which nature action to implement
 in their school grounds.  
 
@@ -58,6 +58,13 @@ NENP_BiodiversityImpactApp/
 ```r
 shiny::runApp()
 ```
+
+## Methodology
+
+The systematic review and meta-analysis methods are available in 
+Varah, A., Purvis, A., de Palma, A., 2025. Biodiversity response to local-scale 
+conservation interventions: A systematic review and meta-analysis protocol. 
+Ecological Solutions and Evidence 6, e70070. https://doi.org/10.1002/2688-8319.70070
 
 ## Funding
 
