@@ -1511,6 +1511,6 @@ server <- function(input, output, session) {
 
 
 # Run ----
-shinyApp(ui, server)
-
+#shinyApp(ui, server)
+shiny::runApp()
 #rsconnect::deployApp() #NB only run this code in the console! Never have it in the app.
