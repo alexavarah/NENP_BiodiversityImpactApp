@@ -10,7 +10,7 @@ improvements will be implemented for the final version.
 
 ## Purpose
 
-The app enables users to explore the estimated effects of different nature  
+The app enables users to explore the estimated effects of different nature 
 actions on biodiversity across a range of taxonomic and functional groups and
 in urban or rural contexts. Results are derived from meta-analytic models using 
 data from a large evidence base of ecological studies. Results are presented 
