@@ -5,7 +5,8 @@ planting flowers, creating ponds, or adding log piles) may affect biodiversity,
 based on evidence synthesised from published ecological studies. This is a 
 development version: at the moment it only includes data on flower-planting 
 actions. Copy development is also necessary to make the app suitable for its
-target audience (school children and teachers).  
+target audience (school children and teachers), and functionality 
+improvements will be implemented for the final version.      
 
 ## Purpose
 
