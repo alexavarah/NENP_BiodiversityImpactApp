@@ -70,6 +70,7 @@ Ecological Solutions and Evidence 6, e70070. https://doi.org/10.1002/2688-8319.7
 
 ## Funding
 
-The app was developed as part of the [National Education Nature Park](https://www.educationnaturepark.org.uk/), 
-funded by the UK Government's Department for Education.
-  
+The app was developed as part of the [National Education Nature Park](https://www.educationnaturepark.org.uk/). 
+The programme was developed by a partnership led by the Natural History Museum, 
+London, working with the Royal Horticultural Society and others and commissioned 
+by the Department for Education.
