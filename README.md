@@ -1,12 +1,25 @@
 # NENP_BiodiversityImpactApp
+
 A Shiny app that allows users to explore how local-scale nature actions (e.g., 
 planting flowers, creating ponds, or adding log piles) may affect biodiversity, 
-based on evidence synthesised from published ecological studies.  
+based on evidence synthesised from published ecological studies. This is a 
+development version: at the moment it only includes data on flower-planting 
+actions. Copy development is also necessary to make the app suitable for its
+target audience (school children and teachers).  
+
+## Purpose
+
+The app enables users to explore the estimated effects of different nature  
+actions on biodiversity across a range of taxonomic and functional groups and
+in urban or rural contexts. Results are derived from meta-analytic models using 
+data from a large evidence base of ecological studies. Results are presented 
+through an interactive user interface.The intended aim is to aid decision-making
+by school children and teachers when planning which nature action to implement
+in their school grounds.  
 
 ## Repository structure
 
 ```text
-
 NENP_BiodiversityImpactApp/
 │
 ├── app.R                           # Main Shiny application
@@ -30,7 +43,7 @@ NENP_BiodiversityImpactApp/
 │   ├── NENP_logo.svg               # App logo
 │   ├── NENP_favicon.ico            # Browser favicon
 │   ├── cricket-grass.png           # Image assets used in the app
-    └── [all other image files]....
+│   └── [all other image files]....
 │
 ├── rsconnect/                      # Shiny deployment configuration
 │
@@ -39,16 +52,14 @@ NENP_BiodiversityImpactApp/
 └── .Rproj.user/                    # RStudio project settings
 ``` 
 
-## Purpose
-
-The app enables users to explore the estimated effects of different nature  
-actions on biodiversity across a range of taxonomic and functional groups and
-in urban or rural contexts. Results are derived from meta-analytic models using 
-data from a large evidence base of ecological studies. Results are presented 
-through an interactive user interface.  
-
 ## Running the app Open `app.R` in RStudio and run:  
 
 ```r
 shiny::runApp()
 ```
+
+## Funding
+
+The app was developed as part of the [National Education Nature Park](https://www.educationnaturepark.org.uk/), 
+funded by the UK Government's Department for Education.
+  
