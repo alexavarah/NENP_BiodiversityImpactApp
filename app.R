@@ -14,7 +14,8 @@ library(leaflet)
 
 source("R/prepare_data.R")
 
-# Load images as shiny isn't finding them otherwise
+# Load images (shiny isn't finding them otherwise)
+
 methods_flow_diagram <- base64enc::dataURI(
   file = "www/methods_flow_diagram.png",
   mime = "image/png"
@@ -127,9 +128,7 @@ glossary_term <- function(term, definition) {
 
 # *****************************************************
 # *****************************************************
-#
 # *UI* ----
-#
 # *****************************************************
 # *****************************************************
 
@@ -178,17 +177,6 @@ ui <- navbarPage(
         "
       )
     ),
-    
-    # # Lighter colour for actions not available yet
-    # tags$style(HTML("
-    #     select#action option[value='dead_wood'],
-    #     select#action option[value='green_roofs_walls'],
-    #     select#action option[value='ponds'] {
-    #       color: #AABCBC;
-    #     }
-    #     "
-    #                 )
-    #            ),
     
     # Error message
     shinydisconnect::disconnectMessage(
@@ -792,7 +780,6 @@ ui <- navbarPage(
       br(),
       br(),
       
-      #h3("Ecological terms"),
       tags$h3(
         "Ecological terms",
         style = "font-size: 1.3rem; font-weight: 500;"
@@ -810,7 +797,6 @@ ui <- navbarPage(
       br(),
       br(),
       
-      #h3("Other terms"),
       tags$h3(
         "Other terms",
         style = "font-size: 1.3rem; font-weight: 500;"
@@ -849,9 +835,7 @@ ui <- navbarPage(
 
 # *****************************************************
 # *****************************************************
-#
 # *SERVER* ----
-#
 # *****************************************************
 # *****************************************************
 
